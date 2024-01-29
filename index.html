@@ -81,9 +81,9 @@
 
     fetch(apiUrl, {
   method: 'POST',
+  mode: "cors",
   headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*' // Enable CORS (replace * with the actual domain if possible)
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify(formData),
   referrerPolicy: 'no-referrer-when-downgrade' // Specify the referrer policy
