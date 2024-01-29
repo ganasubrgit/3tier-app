@@ -102,6 +102,8 @@
       console.error('Error sending data:', error);
       displayResponse({ error: 'Failed to send data.' });
     });
+    var form = document.getElementById("apiForm");
+    form.reset();
   }
 
   function displayResponse(data) {
