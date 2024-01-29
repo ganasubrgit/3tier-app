@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Request Form</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 20px;
+    }
+
+    form {
+      max-width: 400px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #response {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<form id="apiForm">
+  <label for="first_name">First Name:</label>
+  <input type="text" id="first_name" name="first_name" required><br>
+
+  <label for="last_name">Last Name:</label>
+  <input type="text" id="last_name" name="last_name" required><br>
+
+  <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required><br>
+
+  <button type="button" onclick="submitData()">Submit</button>
+</form>
+
+<div id="response"></div>
+
+<script>
+  function submitData() {
+    const formData = {
+      first_name: document.getElementById('first_name').value,
+      last_name: document.getElementById('last_name').value,
+      email: document.getElementById('email').value
+    };
+
+    const apiUrl = 'http://localhost:8080/employees';
+
+    fetch(apiUrl, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*' // Enable CORS (replace * with the actual domain if possible)
+  },
+  body: JSON.stringify(formData),
+  referrerPolicy: 'no-referrer-when-downgrade' // Specify the referrer policy
+})
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Data sent successfully:', data);
+      displayResponse(data);
+    })
+    .catch(error => {
+      console.error('Error sending data:', error);
+      displayResponse({ error: 'Failed to send data.' });
+    });
+  }
+
+  function displayResponse(data) {
+    const responseDiv = document.getElementById('response');
+    responseDiv.innerHTML = '';
+
+    if (data.error) {
+      responseDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+    } else {
+      responseDiv.innerHTML = `<p style="color: green;">API Response:</p>
+                               <pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
+  }
+</script>
+
+</body>
+</html>
