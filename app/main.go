@@ -30,10 +30,9 @@ func main() {
 		return
 	}
 
-	// Auto Migrate the schema
-	err = db.AutoMigrate(&Employee{})
-	if err != nil {
-		fmt.Println("Error auto migrating:", err)
+	// Initialize database (create if not exist)
+	if err := initDB(); err != nil {
+		fmt.Println("Error initializing database:", err)
 		return
 	}
 
@@ -51,6 +50,23 @@ func main() {
 	r.PUT("/employees/:id", updateEmployeeHandler)
 
 	r.Run(":8080")
+}
+
+func initDB() error {
+	// Create database if not exist
+	if err := db.Exec("CREATE DATABASE IF NOT EXISTS empdb").Error; err != nil {
+		return err
+	}
+
+	// Use the database
+	db.Exec("USE empdb")
+
+	// Auto Migrate the schema
+	if err := db.AutoMigrate(&Employee{}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func getEmployeesHandler(c *gin.Context) {

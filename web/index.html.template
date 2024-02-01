@@ -136,7 +136,7 @@ function validateForm() {
       email: document.getElementById('email').value
     };
 //API endpoint
-    const apiUrl = 'http://localhost:8080/employees';
+    const apiUrl = '$API_SERVER_URL';
 
     fetch(apiUrl, {
   method: 'POST',
@@ -179,7 +179,7 @@ function validateForm() {
 
 // Fetch data from database
 // Replace the URL with your API endpoint
- const apiUrl = 'http://localhost:8080/employees';
+ const apiUrl = '$API_SERVER_URL';
 
 // Function to make API request and populate the table
 function fetchData() {
@@ -204,7 +204,6 @@ function fetchData() {
             console.error('Error fetching data:', error);
         });
 }
-
 
 </script>
 <br>
