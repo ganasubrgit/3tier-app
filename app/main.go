@@ -1,6 +1,9 @@
+// go run main.go -dbhostname=localhost -dbname=custdb -dbuser=root -dbpass=password -dbport=3306
+
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,6 +13,23 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
+
+var (
+	dbHostname string
+	dbName     string
+	dbUser     string
+	dbPass     string
+	dbPort     int
+)
+
+func init() {
+	flag.StringVar(&dbHostname, "dbhostname", "localhost", "MySQL database hostname")
+	flag.StringVar(&dbName, "dbname", "custdb", "MySQL database name")
+	flag.StringVar(&dbUser, "dbuser", "root", "MySQL database user")
+	flag.StringVar(&dbPass, "dbpass", "password", "MySQL database password")
+	flag.IntVar(&dbPort, "dbport", 3306, "MySQL database port")
+	flag.Parse()
+}
 
 type Customer struct {
 	ID        uint   `gorm:"primaryKey" json:"id"`
@@ -21,8 +41,7 @@ type Customer struct {
 var db *gorm.DB
 
 func main() {
-	// Replace these details with your MySQL server information
-	dsn := "root:password@tcp(localhost:3306)/custdb"
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/", dbUser, dbPass, dbHostname, dbPort)
 	var err error
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -30,20 +49,29 @@ func main() {
 		return
 	}
 
-	// Initialize database (create if not exist)
+	// Create the database if it does not exist
+	if err := db.Exec("CREATE DATABASE IF NOT EXISTS " + dbName).Error; err != nil {
+		fmt.Println("Error creating database:", err)
+		return
+	}
+
+	dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", dbUser, dbPass, dbHostname, dbPort, dbName)
+	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		fmt.Println("Error opening database:", err)
+		return
+	}
+
 	if err := initDB(); err != nil {
 		fmt.Println("Error initializing database:", err)
 		return
 	}
 
 	r := gin.Default()
-
-	// Use CORS middleware
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}
 	r.Use(cors.New(config))
 
-	// Different Handlers for Customers
 	r.GET("/customers", getCustomersHandler)
 	r.GET("/customers/:id", getCustomerHandler)
 	r.POST("/customers", createCustomerHandler)
@@ -53,15 +81,8 @@ func main() {
 }
 
 func initDB() error {
-	// Create database if not exist
-	if err := db.Exec("CREATE DATABASE IF NOT EXISTS custdb").Error; err != nil {
-		return err
-	}
+	db.Exec("USE " + dbName)
 
-	// Use the database
-	db.Exec("USE custdb")
-
-	// Auto Migrate the schema
 	if err := db.AutoMigrate(&Customer{}); err != nil {
 		return err
 	}
