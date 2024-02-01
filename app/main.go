@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Employee struct {
+type Customer struct {
 	ID        uint   `gorm:"primaryKey" json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
@@ -22,7 +22,7 @@ var db *gorm.DB
 
 func main() {
 	// Replace these details with your MySQL server information
-	dsn := "root:password@tcp(localhost:3306)/empdb"
+	dsn := "root:password@tcp(localhost:3306)/custdb"
 	var err error
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -43,105 +43,105 @@ func main() {
 	config.AllowOrigins = []string{"*"}
 	r.Use(cors.New(config))
 
-	//Different Handlers
-	r.GET("/employees", getEmployeesHandler)
-	r.GET("/employees/:id", getEmployeeHandler)
-	r.POST("/employees", createEmployeeHandler)
-	r.PUT("/employees/:id", updateEmployeeHandler)
+	// Different Handlers for Customers
+	r.GET("/customers", getCustomersHandler)
+	r.GET("/customers/:id", getCustomerHandler)
+	r.POST("/customers", createCustomerHandler)
+	r.PUT("/customers/:id", updateCustomerHandler)
 
 	r.Run(":8080")
 }
 
 func initDB() error {
 	// Create database if not exist
-	if err := db.Exec("CREATE DATABASE IF NOT EXISTS empdb").Error; err != nil {
+	if err := db.Exec("CREATE DATABASE IF NOT EXISTS custdb").Error; err != nil {
 		return err
 	}
 
 	// Use the database
-	db.Exec("USE empdb")
+	db.Exec("USE custdb")
 
 	// Auto Migrate the schema
-	if err := db.AutoMigrate(&Employee{}); err != nil {
+	if err := db.AutoMigrate(&Customer{}); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func getEmployeesHandler(c *gin.Context) {
-	var employees []Employee
-	if err := db.Find(&employees).Error; err != nil {
+func getCustomersHandler(c *gin.Context) {
+	var customers []Customer
+	if err := db.Find(&customers).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
-	c.JSON(http.StatusOK, employees)
+	c.JSON(http.StatusOK, customers)
 }
 
-func getEmployeeHandler(c *gin.Context) {
+func getCustomerHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid employee ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid customer ID"})
 		return
 	}
 
-	var employee Employee
-	if err := db.First(&employee, id).Error; err != nil {
+	var customer Customer
+	if err := db.First(&customer, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Employee not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, employee)
+	c.JSON(http.StatusOK, customer)
 }
 
-func createEmployeeHandler(c *gin.Context) {
-	var employee Employee
-	if err := c.ShouldBindJSON(&employee); err != nil {
+func createCustomerHandler(c *gin.Context) {
+	var customer Customer
+	if err := c.ShouldBindJSON(&customer); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
 		return
 	}
 
-	if err := db.Create(&employee).Error; err != nil {
+	if err := db.Create(&customer).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"id": employee.ID})
+	c.JSON(http.StatusCreated, gin.H{"id": customer.ID})
 }
 
-func updateEmployeeHandler(c *gin.Context) {
+func updateCustomerHandler(c *gin.Context) {
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid employee ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid customer ID"})
 		return
 	}
 
-	var existingEmployee Employee
-	if err := db.First(&existingEmployee, id).Error; err != nil {
+	var existingCustomer Customer
+	if err := db.First(&existingCustomer, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Employee not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	var updatedEmployee Employee
-	if err := c.ShouldBindJSON(&updatedEmployee); err != nil {
+	var updatedCustomer Customer
+	if err := c.ShouldBindJSON(&updatedCustomer); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
 		return
 	}
 
-	if err := db.Model(&existingEmployee).Updates(updatedEmployee).Error; err != nil {
+	if err := db.Model(&existingCustomer).Updates(updatedCustomer).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Employee updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Customer updated successfully"})
 }

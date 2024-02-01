@@ -2,4 +2,4 @@
 docker build -t customerweb .
 
 #Docker run with env vairable
-docker run -p 8081:80 -td -e API_SERVER_URL=http://localhost:8080/customer customerweb
+docker run -p 8081:80 -td -e API_SERVER_URL=http://localhost:8080/customers customerweb
